@@ -7,10 +7,10 @@ let win
 function initProxySession() {
   const ses = session.fromPartition('persist:proxy')
   ses.webRequest.onBeforeRequest((details, callback) => {
-    const url = new URL(details.url);
+    const url = new URL(details.url)
     if (url.host === '127.0.0.1:5001') {
-      callback({});
-      return;
+      callback({})
+      return
     }
     callback({
       redirectURL: details.url.split('127.0.0.1:5000').join('127.0.0.1:5001')
