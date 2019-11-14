@@ -13,7 +13,7 @@ exports.resolveHostname = function (hostname) {
       let resolved = false;
       const req = net.request({
         url: 'http://' + hostname,
-        method: 'GET'
+        method: 'HEAD'
       });
       req.on('redirect', function () {
         resolve(hostname);
