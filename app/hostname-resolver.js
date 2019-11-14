@@ -46,6 +46,10 @@ exports.resolveHostname = function (hostname) {
                 resolve(hostname);
               }
             });
+            res.on('aborted', function () {
+              promiseMap[hostname] = null;
+              resolve(hostname);
+            });
             res.on('error', function () {
               promiseMap[hostname] = null;
               resolve(hostname);
