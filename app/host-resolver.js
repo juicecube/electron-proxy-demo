@@ -25,7 +25,7 @@ exports.resolveHostname = function (hostname) {
       });
       req.on('close', function () {
         if (!resolved) {
-          const dnsReq = net.request('http://203.107.1.33/100000/d?host=www.aliyun.com');
+          const dnsReq = net.request('http://203.107.1.33/100000/d?host=' + hostname);
           dnsReq.on('response', function (res) {
             const chunk = [];
             let size = 0;
