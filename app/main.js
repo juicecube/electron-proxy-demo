@@ -1,5 +1,5 @@
 const {app, BrowserWindow, session} = require('electron');
-const {resolveHostname} = require('./host-resolver');
+const {resolveHostname} = require('./hostname-resolver');
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
