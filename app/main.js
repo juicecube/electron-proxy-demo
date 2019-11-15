@@ -15,6 +15,9 @@ function initProxySession() {
         callback({});
       } else {
         url.hostname = hostname;
+        if ((/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/).test(hostname)) {
+          url.protocol = 'http:';
+        }
         callback({
           redirectURL: url.href
         });
