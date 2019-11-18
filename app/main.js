@@ -31,7 +31,7 @@ function initProxySession() {
     const url = new URL(details.url);
     if ((/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/).test(url.hostname)) {
       const requestHeaders = details.requestHeaders;
-      requestHeaders.Host = getHostnameFromIp[url.hostname] || requestHeaders.Host;
+      requestHeaders.Host = getHostnameFromIp(url.hostname) || requestHeaders.Host;
       requestHeaders.Origin = webContentsOriginMap[details.webContentsId];
       callback({
         requestHeaders: requestHeaders
