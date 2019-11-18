@@ -1,19 +1,21 @@
 const {app, BrowserWindow, session} = require('electron');
-const {resolveHostname, getHostnameFromIp} = require('./hostname-resolver');
+const {resolveHostname} = require('./hostname-resolver');
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let win;
-const webContentsOriginMap = {};
 
 function initProxySession() {
   const ses = session.fromPartition('persist:proxy');
 
   ses.webRequest.onBeforeRequest(async (details, callback) => {
+    if (details.resourceType === 'xhr') {
+      callback({});
+      return;
+    }
     try {
       const url = new URL(details.url);
       const hostname = await resolveHostname(url.hostname);
-      webContentsOriginMap[details.webContentsId] = webContentsOriginMap[details.webContentsId] || new URL(details.referrer).origin;
       if (hostname === url.hostname) {
         callback({});
       } else {
@@ -24,20 +26,6 @@ function initProxySession() {
       }
     } catch (err) {
       callback({});
-    }
-  });
-
-  ses.webRequest.onBeforeSendHeaders(async (details, callback) => {
-    const url = new URL(details.url);
-    if ((/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/).test(url.hostname)) {
-      const requestHeaders = details.requestHeaders;
-      requestHeaders.Host = getHostnameFromIp(url.hostname) || requestHeaders.Host;
-      requestHeaders.Origin = webContentsOriginMap[details.webContentsId];
-      callback({
-        requestHeaders: requestHeaders
-      });
-    } else {
-      callback(-3);
     }
   });
 
