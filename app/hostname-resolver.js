@@ -1,6 +1,11 @@
 const {net} = require('electron');
 
 const promiseMap = {};
+const ipToHostnameMap = {};
+
+exports.getHostnameFromIp = function (ip) {
+  return ipToHostnameMap[ip];
+};
 
 exports.resolveHostname = function (hostname) {
   if (!promiseMap[hostname]) {
@@ -25,7 +30,7 @@ exports.resolveHostname = function (hostname) {
       });
       req.on('close', function () {
         if (!resolved) {
-          const dnsReq = net.request('http://203.107.1.33/100000/d?host=' + hostname);
+          const dnsReq = net.request('http://203.107.1.33/181365/d?host=' + hostname);
           dnsReq.on('response', function (res) {
             const chunk = [];
             let size = 0;
@@ -37,6 +42,7 @@ exports.resolveHostname = function (hostname) {
               try {
                 const data = JSON.parse(Buffer.concat(chunk, size).toString());
                 if (data.ips[0]) {
+                  ipToHostnameMap[data.ips[0]] = hostname;
                   resolve(data.ips[0]);
                 } else {
                   resolve(hostname);

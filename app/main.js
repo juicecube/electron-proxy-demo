@@ -1,29 +1,51 @@
 const {app, BrowserWindow, session} = require('electron');
-const {resolveHostname} = require('./hostname-resolver');
+const {resolveHostname, getHostnameFromIp} = require('./hostname-resolver');
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let win;
+const webContentsOriginMap = {};
 
 function initProxySession() {
   const ses = session.fromPartition('persist:proxy');
+
   ses.webRequest.onBeforeRequest(async (details, callback) => {
     try {
       const url = new URL(details.url);
       const hostname = await resolveHostname(url.hostname);
+      webContentsOriginMap[details.webContentsId] = webContentsOriginMap[details.webContentsId] || new URL(details.referrer).origin;
       if (hostname === url.hostname) {
         callback({});
       } else {
         url.hostname = hostname;
-        if ((/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/).test(hostname)) {
-          url.protocol = 'http:';
-        }
         callback({
           redirectURL: url.href
         });
       }
     } catch (err) {
       callback({});
+    }
+  });
+
+  ses.webRequest.onBeforeSendHeaders(async (details, callback) => {
+    const url = new URL(details.url);
+    if ((/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/).test(url.hostname)) {
+      const requestHeaders = details.requestHeaders;
+      requestHeaders.Host = getHostnameFromIp[url.hostname] || requestHeaders.Host;
+      requestHeaders.Origin = webContentsOriginMap[details.webContentsId];
+      callback({
+        requestHeaders: requestHeaders
+      });
+    } else {
+      callback(-3);
+    }
+  });
+
+  ses.setCertificateVerifyProc((req, callback) => {
+    if ((/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/).test(req.hostname)) {
+      callback(0);
+    } else {
+      callback(-3);
     }
   });
 }
@@ -40,7 +62,7 @@ function createWindow () {
   });
 
   // and load the index.html of the app.
-  win.loadURL('https://staging-m.codemao.cn/');
+  win.loadURL('http://127.0.0.1:5000/');
 
   // Open the DevTools.
   // win.webContents.openDevTools();
